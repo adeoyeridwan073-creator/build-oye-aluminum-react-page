@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 300" role="img" aria-labelledby="title">
+  <title id="title">Oye Ademola Commercial Ent.</title>
+  <g fill="#41414b">
+    <path d="M22 229 142 21 262 229Z"/>
+  </g>
+  <circle cx="229" cy="143" r="61" fill="#fff"/>
+  <text x="183" y="145" fill="#cb173c" font-family="Arial,sans-serif" font-size="48" font-weight="700">O</text>
+  <text x="220" y="166" fill="#1683a1" font-family="Arial,sans-serif" font-size="48" font-weight="700">ye</text>
+  <text x="302" y="232" fill="#41414b" font-family="Arial,sans-serif" font-size="166" font-weight="700" letter-spacing="-7">Ademola</text>
+  <circle cx="908" cy="81" r="54" fill="none" stroke="#cb173c" stroke-width="14"/>
+  <text x="873" y="95" fill="#1683a1" font-family="Arial,sans-serif" font-size="44" font-weight="700">ye</text>
+  <text x="461" y="282" fill="#c8173d" font-family="Comic Sans MS,cursive" font-size="59" font-weight="500" letter-spacing="1">COMMERCIAL ENT.</text>
+  <path d="M462 296h494" stroke="#c8173d" stroke-width="4"/>
+</svg>
