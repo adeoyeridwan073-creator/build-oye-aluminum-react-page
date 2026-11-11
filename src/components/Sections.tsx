@@ -55,7 +55,7 @@ export function Products() {
 
         <div className="my-8 flex max-w-full gap-1 overflow-x-auto border-b border-(--line)" role="group" aria-label="Filter products by category">
           {CATEGORIES.map((item) => (
-            <button key={item} type="button" onClick={() => setCategory(item)} aria-pressed={category === item} className={`min-h-12 shrink-0 border-b-2 px-4 text-sm transition-colors ${category === item ? "border-(--accent) font-semibold text-(--ink)" : "border-transparent text-(--muted) hover:text-(--ink)"}`}>
+            <button key={item} type="button" onClick={() => setCategory(item)} aria-pressed={category === item} className={`min-h-12 shrink-0 rounded-full border px-4 text-sm text-white transition-colors ${category === item ? "border-(--forest) bg-(--forest) font-semibold" : "border-slate-700 bg-slate-700 hover:bg-slate-800"}`}>
               {t(item)}
             </button>
           ))}

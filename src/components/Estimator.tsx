@@ -229,7 +229,7 @@ export default function Estimator() {
               className={`min-h-12 rounded-full border px-5 py-3 text-sm font-semibold transition-colors ${
                 calculatorType === type
                   ? "border-(--forest) bg-(--forest) text-white"
-                  : "border-(--line) text-(--muted) hover:border-(--accent) hover:text-(--ink)"
+                  : "border-slate-700 bg-slate-700 text-white hover:bg-slate-800"
               }`}
             >
               {type}
@@ -252,7 +252,7 @@ export default function Estimator() {
                       className={`rounded-xl border px-3 py-3 text-sm font-medium transition-all ${
                         product === item
                           ? "border-sky-400 bg-sky-400/10 text-white"
-                          : "border-white/10 text-slate-400 hover:border-white/30"
+                          : "border-white/10 text-white hover:border-white/30"
                       }`}
                     >
                       {item}
@@ -451,7 +451,7 @@ function ChoiceButton({
       className={`min-h-12 rounded-xl border px-3 py-3 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-45 ${
         selected
           ? "border-sky-400 bg-sky-400/10 text-white"
-          : "border-white/10 text-slate-400 hover:border-white/30"
+          : "border-white/10 text-white hover:border-white/30"
       }`}
     >
       {children}
