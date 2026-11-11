@@ -16,7 +16,7 @@ export default function Hero() {
             {t("Made-to-measure aluminium windows, doors and architectural systems, shaped around the way you live and build.")}
           </p>
           <div className="animate-fade-up mt-9 flex flex-wrap items-center gap-x-7 gap-y-4" style={{ animationDelay: "0.24s" }}>
-            <a href="#contact" className="inline-flex min-h-12 items-center gap-3 bg-(--accent) px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#963d2a]">
+            <a href="#contact" style={{ color: "#fff" }} className="inline-flex min-h-12 items-center gap-3 bg-(--accent) px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#963d2a]">
               {t("Talk about your project")} <Icon name="arrow" className="h-4 w-4" />
             </a>
             <a href="#products" className="inline-flex min-h-12 items-center text-sm font-semibold text-(--ink) underline decoration-(--line) underline-offset-4 transition-colors hover:decoration-(--accent)">
