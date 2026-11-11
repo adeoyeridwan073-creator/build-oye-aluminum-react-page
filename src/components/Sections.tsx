@@ -96,7 +96,7 @@ export function About() {
         <p className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-(--accent)">{t("Made with intention")}</p>
         <h2 className="font-display text-4xl font-medium leading-tight tracking-[-0.04em] sm:text-5xl">{t("A better fit starts with listening.")}</h2>
         <p className="mt-6 leading-7 text-(--muted)">{t("Every project has its own proportions, priorities and point of view. We work with you to shape an aluminium solution that belongs in the space, down to the finish and the final fit.")}</p>
-        <a href="#contact" className="mt-8 inline-flex min-h-12 items-center gap-3 bg-(--forest) px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#29392f]">{t("Start a conversation")} <Icon name="arrow" className="h-4 w-4" /></a>
+        <a href="#contact" style={{ color: "#fff" }} className="mt-8 inline-flex min-h-12 items-center gap-3 bg-(--forest) px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#29392f]">{t("Start a conversation")} <Icon name="arrow" className="h-4 w-4" /></a>
       </div>
     </section>
   );

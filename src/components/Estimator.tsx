@@ -297,7 +297,7 @@ export default function Estimator() {
                       aria-label={name}
                       aria-pressed={finish === name}
                       style={{ background: item.swatch }}
-                      className={`h-11 w-11 rounded-full border-2 transition-all ${
+                      className={`h-11 w-11 rounded-full border-2 text-white transition-all ${
                         finish === name ? "scale-110 border-sky-400 ring-4 ring-sky-400/20" : "border-white/10 hover:scale-105"
                       }`}
                     />
