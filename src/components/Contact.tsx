@@ -17,8 +17,14 @@ export function Contact() {
     setSubmissionStatus("");
 
     try {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
+        ?? (import.meta.env.DEV ? "http://127.0.0.1:8000" : "");
+      if (!apiBaseUrl) {
+        throw new Error("The contact form is not connected to the backend yet.");
+      }
+
       const response = await fetch(
-        `${(import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000").replace(/\/+$/, "")}/api/messages/`,
+        `${apiBaseUrl.replace(/\/+$/, "")}/api/messages/`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

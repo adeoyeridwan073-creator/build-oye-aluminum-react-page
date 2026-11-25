@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { FINISHES, PRODUCT_RATES } from "../data";
+import { useState } from "react";
+import { ALUMINIUM_PRODUCTS, FINISHES } from "../data";
 
 type CalculatorType = "Aluminium systems" | "Roofing sheets";
 type RoofingProduct = "Longspan" | "Steptiles" | "Metrocopo";
@@ -9,40 +9,21 @@ type Grade = "Market" | "Caliper";
 const ROOFING_PRODUCTS: RoofingProduct[] = ["Longspan", "Steptiles", "Metrocopo"];
 const GAUGES: Gauge[] = ["0.40", "0.45", "0.50", "0.55", "0.60", "0.70"];
 
-// Update these sample Lagos market rates when you receive current supplier prices.
-// The supplied rates are reused for all roofing products as temporary estimates.
-const ROOFING_MARKET_RATES: Partial<Record<Gauge, number>> = {
-  "0.40": 5600,
-  "0.45": 6200,
-  "0.50": 6800,
-  "0.55": 8100,
-  // Add verified rates for "0.60" and "0.70" to enable those gauges.
-};
-
-const CALIPER_MULTIPLIER = 1.7;
-const ROOFING_WASTAGE_RATE = 0.12;
-const LABOUR_OVERHEAD_RATE = 0.25;
-const PROFIT_RATE = 0.25;
 const WHATSAPP_NUMBER = "2349016486105";
 const DIMENSION_MIN_MM = 500;
 const DIMENSION_MAX_MM = 15000;
 const DIMENSION_STEP_MM = 100;
 const MILLIMETRES_PER_METRE = 1000;
-const ALUMINIUM_WASTAGE_RATE = 0.1;
-const QUOTE_API_URL = `${(import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "")}/api/quotes/`;
-
-const formatNaira = (amount: number) =>
-  amount.toLocaleString("en-NG", {
-    style: "currency",
-    currency: "NGN",
-    maximumFractionDigits: 0,
-  });
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+  ?? (import.meta.env.DEV ? "http://127.0.0.1:8000" : "");
+const QUOTE_API_URL = API_BASE_URL
+  ? `${API_BASE_URL.replace(/\/+$/, "")}/api/quotes/`
+  : "";
 
 export default function Estimator() {
   const [calculatorType, setCalculatorType] = useState<CalculatorType>("Aluminium systems");
 
-  // Aluminium rates are indicative Nigeria market budgets in NGN.
-  const [product, setProduct] = useState(Object.keys(PRODUCT_RATES)[0]);
+  const [product, setProduct] = useState(ALUMINIUM_PRODUCTS[0]);
   const [width, setWidth] = useState(1500);
   const [height, setHeight] = useState(1200);
   const [qty, setQty] = useState(4);
@@ -55,80 +36,37 @@ export default function Estimator() {
   const [grade, setGrade] = useState<Grade>("Market");
   const [roofArea, setRoofArea] = useState("100");
   const [colourCoated, setColourCoated] = useState(false);
+  const [customerName, setCustomerName] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
   const [quoteStatus, setQuoteStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [quoteError, setQuoteError] = useState("");
 
   const isRail = product.includes("per m");
-  const isSlidingWindow = product === "Sliding Window";
-  const stockLength = 6;
-  const cuttingAllowance = 0.05;
-  const aluminiumEstimate = useMemo(() => {
-    const widthInMetres = width / MILLIMETRES_PER_METRE;
-    const heightInMetres = height / MILLIMETRES_PER_METRE;
-    const area = isRail ? widthInMetres * qty : widthInMetres * heightInMetres * qty;
-    const baseMaterial = area * PRODUCT_RATES[product] * FINISHES[finish].mult;
-    const wastage = baseMaterial * ALUMINIUM_WASTAGE_RATE;
-    const material = baseMaterial + wastage;
-    const installation = install ? material * 0.15 : 0;
-    const total = material + installation;
-
-    const perimeter = isSlidingWindow ? 2 * (widthInMetres + heightInMetres) : 0;
-    const profileLengthPerWindow = perimeter * (1 + cuttingAllowance);
-    const stockLengths = isSlidingWindow
-      ? Math.ceil(profileLengthPerWindow / stockLength) * qty
-      : 0;
-
-    return { area, total, baseMaterial, wastage, material, installation, perimeter, profileLengthPerWindow, stockLengths };
-  }, [product, width, height, qty, finish, install, isRail, isSlidingWindow]);
-
+  const aluminiumArea = isRail
+    ? (width / MILLIMETRES_PER_METRE) * qty
+    : (width / MILLIMETRES_PER_METRE) * (height / MILLIMETRES_PER_METRE) * qty;
   const roofAreaValue = Number(roofArea);
-  const roofBaseRate = ROOFING_MARKET_RATES[gauge];
-  const roofUnitRate = roofBaseRate === undefined
-    ? undefined
-    : grade === "Caliper"
-      ? roofBaseRate * CALIPER_MULTIPLIER
-      : roofBaseRate;
-
-  const roofingEstimate = useMemo(() => {
-    if (!roofUnitRate || !Number.isFinite(roofAreaValue) || roofAreaValue <= 0) return null;
-
-    const baseMaterial = roofAreaValue * roofUnitRate;
-    const wastage = baseMaterial * ROOFING_WASTAGE_RATE;
-    const material = baseMaterial + wastage;
-    const labourOverhead = material * LABOUR_OVERHEAD_RATE;
-    const profit = (material + labourOverhead) * PROFIT_RATE;
-
-    return {
-      unitRate: roofUnitRate,
-      baseMaterial,
-      wastage,
-      material,
-      labourOverhead,
-      profit,
-      total: material + labourOverhead + profit,
-    };
-  }, [roofAreaValue, roofUnitRate]);
+  const roofAreaValid = Number.isFinite(roofAreaValue) && roofAreaValue >= 1 && roofAreaValue <= 100000;
 
   const aluminiumQuoteMessage = [
-    "Hello, I would like an exact aluminium quote.",
+    "Hello, I would like an aluminium quote.",
     `Product: ${product}`,
     ...(!isRail ? [`Dimensions per item: ${width} mm × ${height} mm`] : []),
-    `${isRail ? "Total length" : "Quantity"}: ${isRail ? `${aluminiumEstimate.area.toFixed(2)} m` : qty}`,
-    ...(!isRail ? [`Total area: ${aluminiumEstimate.area.toFixed(2)} m²`] : []),
+    `${isRail ? "Length" : "Quantity"}: ${isRail ? `${width} mm` : qty}`,
+    ...(!isRail ? [`Approximate total area: ${aluminiumArea.toFixed(2)} m²`] : []),
     `Finish: ${finish}`,
-    `Installation: ${install ? "Included" : "Supply only"}`,
-    `Estimated total: ${formatNaira(aluminiumEstimate.total)}`,
+    `Installation requested: ${install ? "Yes" : "No"}`,
   ].join("\n");
   const aluminiumWhatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(aluminiumQuoteMessage)}`;
 
   const roofingQuoteMessage = [
-    "Hello, I would like an exact roofing quote.",
+    "Hello, I would like a roofing quote.",
     `Product: ${roofProduct}`,
     `Gauge: ${gauge} mm`,
     `Grade: ${grade}`,
     `Roof area: ${roofAreaValue.toLocaleString("en-NG")} m²`,
     `Colour-coated: ${colourCoated ? "Yes" : "No"}`,
-    roofingEstimate ? `Estimated total: ${formatNaira(roofingEstimate.total)}` : "Please confirm pricing.",
   ].join("\n");
   const roofingWhatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(roofingQuoteMessage)}`;
 
@@ -136,8 +74,20 @@ export default function Estimator() {
     setQuoteStatus("sending");
     setQuoteError("");
 
+    if (!QUOTE_API_URL) {
+      setQuoteStatus("error");
+      setQuoteError("Quote requests are not connected. Please contact us by WhatsApp.");
+      return;
+    }
+
+    const contactDetails = {
+      name: customerName.trim(),
+      email: customerEmail.trim(),
+      number: customerPhone.trim(),
+    };
     const payload = calculatorType === "Aluminium systems"
       ? {
+          ...contactDetails,
           estimator_type: "aluminium",
           product,
           width_mm: width,
@@ -145,19 +95,15 @@ export default function Estimator() {
           quantity: qty,
           finish,
           installation: install,
-          area_m2: Number(aluminiumEstimate.area.toFixed(2)),
-          estimated_total_ngn: Math.round(aluminiumEstimate.total),
-          quote_message: aluminiumQuoteMessage,
         }
       : {
+          ...contactDetails,
           estimator_type: "roofing",
           product: roofProduct,
           gauge_mm: Number(gauge),
           grade,
           area_m2: roofAreaValue,
           colour_coated: colourCoated,
-          estimated_total_ngn: roofingEstimate ? Math.round(roofingEstimate.total) : null,
-          quote_message: roofingQuoteMessage,
         };
 
     try {
@@ -180,18 +126,35 @@ export default function Estimator() {
   };
 
   const quoteAction = (whatsappUrl: string, enabled: boolean) => (
-    <div className="relative mt-8 space-y-3">
+    <form
+      className="relative mt-8 space-y-3"
+      onSubmit={(event) => {
+        event.preventDefault();
+        void sendQuoteToBackend();
+      }}
+    >
+      <label className="block text-sm font-semibold">
+        Your name
+        <input required autoComplete="name" value={customerName} onChange={(event) => setCustomerName(event.target.value)} className="mt-2 min-h-11 w-full rounded-lg border border-slate-900/20 bg-white px-3" />
+      </label>
+      <label className="block text-sm font-semibold">
+        Email address
+        <input required type="email" autoComplete="email" value={customerEmail} onChange={(event) => setCustomerEmail(event.target.value)} className="mt-2 min-h-11 w-full rounded-lg border border-slate-900/20 bg-white px-3" />
+      </label>
+      <label className="block text-sm font-semibold">
+        Phone number
+        <input required type="tel" autoComplete="tel" value={customerPhone} onChange={(event) => setCustomerPhone(event.target.value)} className="mt-2 min-h-11 w-full rounded-lg border border-slate-900/20 bg-white px-3" />
+      </label>
       <button
-        type="button"
-        onClick={sendQuoteToBackend}
+        type="submit"
         disabled={!enabled || quoteStatus === "sending"}
         className="block min-h-14 w-full rounded-full bg-slate-950 py-4 text-center font-semibold text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {quoteStatus === "sending" ? "Sending quote..." : quoteStatus === "sent" ? "Quote sent successfully" : "Send quote request"}
+        {quoteStatus === "sending" ? "Sending request..." : quoteStatus === "sent" ? "Request received" : "Request a quote"}
       </button>
       {quoteStatus === "sent" && (
         <p role="status" className="text-center text-xs text-slate-800">
-          Your quote was sent to our team. You can also{" "}
+          Your request was sent to our team. We’ll confirm pricing with you. You can also{" "}
           <a href={whatsappUrl} target="_blank" rel="noreferrer" className="font-bold underline">
             open WhatsApp
           </a>
@@ -207,16 +170,16 @@ export default function Estimator() {
           .
         </p>
       )}
-    </div>
+    </form>
   );
 
   return (
     <section id="estimate" className="border-y border-(--line) bg-white py-20 sm:py-24 lg:py-28">
       <div className="mx-auto max-w-6xl px-5">
         <div className="mx-auto mb-10 max-w-2xl text-center sm:mb-14">
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-(--accent)">Instant estimate</p>
-          <h2 className="font-display text-3xl font-bold leading-tight text-(--ink) md:text-5xl">Price your project in seconds</h2>
-          <p className="mt-4 text-lg text-(--muted)">Choose an estimator for aluminium systems or roofing sheets. Both provide an indicative Nigeria market estimate.</p>
+          <p className="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-(--accent)">Request a quote</p>
+          <h2 className="font-display text-3xl font-bold leading-tight text-(--ink) md:text-5xl">Tell us about your project</h2>
+          <p className="mt-4 text-lg text-(--muted)">Choose aluminium systems or roofing sheets and share your requirements. Our team will confirm the details and prepare your quote.</p>
         </div>
 
         <div className="mb-6 flex flex-wrap justify-center gap-2" role="group" aria-label="Choose estimator">
@@ -243,7 +206,7 @@ export default function Estimator() {
               <div>
                 <label className="text-sm font-semibold text-slate-300">Product type</label>
                 <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
-                  {Object.keys(PRODUCT_RATES).map((item) => (
+                  {ALUMINIUM_PRODUCTS.map((item) => (
                     <button
                       key={item}
                       type="button"
@@ -307,33 +270,21 @@ export default function Estimator() {
 
               <label className="flex cursor-pointer select-none items-center gap-3">
                 <input type="checkbox" checked={install} onChange={(event) => setInstall(event.target.checked)} className="h-5 w-5 accent-sky-500" />
-                <span className="text-slate-300">Include professional installation (+15%)</span>
+                <span className="text-slate-300">Include professional installation</span>
               </label>
             </div>
 
             <EstimateCard
-              title="Estimated total"
-              total={formatNaira(aluminiumEstimate.total)}
+              title="Request an exact quote"
               rows={[
                 ["Product", product],
                 ["Quantity", String(qty)],
                 ...(!isRail ? [["Dimensions per item", `${width} mm × ${height} mm`] as [string, string]] : []),
-                [isRail ? "Total length" : "Total area", `${aluminiumEstimate.area.toFixed(2)} ${isRail ? "m" : "m²"}`],
-                ["Material + finish", formatNaira(aluminiumEstimate.baseMaterial)],
-                ["Wastage allowance (10%)", formatNaira(aluminiumEstimate.wastage)],
-                ["Material incl. wastage", formatNaira(aluminiumEstimate.material)],
-                ["Installation (15%)", install ? formatNaira(aluminiumEstimate.installation) : "Excluded"],
-                ...(isSlidingWindow
-                  ? [
-                      ["Frame perimeter per window", `${aluminiumEstimate.perimeter.toFixed(2)} m`] as [string, string],
-                      ["Profile incl. 5% cutting allowance", `${aluminiumEstimate.profileLengthPerWindow.toFixed(2)} m / window`] as [string, string],
-                      ["6 m stock lengths required", String(aluminiumEstimate.stockLengths)] as [string, string],
-                    ]
-                  : []),
+                [isRail ? "Approximate total length" : "Approximate total area", `${aluminiumArea.toFixed(2)} ${isRail ? "m" : "m²"}`],
                 ["Finish", finish],
-                ["Installation", install ? "Included" : "Supply only"],
+                ["Installation requested", install ? "Yes" : "No"],
               ]}
-              note={isSlidingWindow ? "Profile length uses the outer frame perimeter plus 5% cutting allowance. Final cut planning may change material usage." : "Indicative Nigeria budget rate in NGN. Confirm profile, glass, hardware, transport, VAT and site conditions before quoting."}
+              note="No price is calculated here. Our team will confirm the specification and prepare a quote."
               action={quoteAction(aluminiumWhatsappUrl, true)}
             />
           </div>
@@ -353,15 +304,13 @@ export default function Estimator() {
                 <legend className="text-sm font-semibold text-slate-300">Gauge / thickness</legend>
                 <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
                   {GAUGES.map((item) => {
-                    const available = ROOFING_MARKET_RATES[item] !== undefined;
                     return (
                       <ChoiceButton
                         key={item}
                         selected={gauge === item}
-                        disabled={!available}
                         onClick={() => setGauge(item)}
                       >
-                        {`${item} mm${available ? "" : " · rate needed"}`}
+                        {`${item} mm`}
                       </ChoiceButton>
                     );
                   })}
@@ -372,7 +321,7 @@ export default function Estimator() {
                 <legend className="text-sm font-semibold text-slate-300">Grade</legend>
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   <ChoiceButton selected={grade === "Market"} onClick={() => setGrade("Market")}>Market</ChoiceButton>
-                  <ChoiceButton selected={grade === "Caliper"} onClick={() => setGrade("Caliper")}>Caliper (+70% estimate)</ChoiceButton>
+                  <ChoiceButton selected={grade === "Caliper"} onClick={() => setGrade("Caliper")}>Caliper</ChoiceButton>
                 </div>
               </fieldset>
 
@@ -382,6 +331,7 @@ export default function Estimator() {
                   id="roof-area"
                   type="number"
                   min="1"
+                  max="100000"
                   step="0.1"
                   inputMode="decimal"
                   value={roofArea}
@@ -402,27 +352,15 @@ export default function Estimator() {
             </div>
 
             <EstimateCard
-              title="Roofing estimate"
-              total={roofingEstimate ? formatNaira(roofingEstimate.total) : undefined}
-              rows={roofingEstimate ? [
+              title="Request an exact quote"
+              rows={[
                 ["Product / grade", `${roofProduct} · ${grade}`],
                 ["Gauge", `${gauge} mm`],
                 ["Roof area", `${roofAreaValue.toLocaleString("en-NG")} m²`],
-                ["Rate per m²", formatNaira(roofingEstimate.unitRate)],
-                ["Base material", formatNaira(roofingEstimate.baseMaterial)],
-                ["Wastage (12%)", formatNaira(roofingEstimate.wastage)],
-                ["Material incl. wastage", formatNaira(roofingEstimate.material)],
-                ["Labour + overhead (25%)", formatNaira(roofingEstimate.labourOverhead)],
-                ["Profit (25%)", formatNaira(roofingEstimate.profit)],
-              ] : []}
-              note={roofingEstimate
-                ? "Indicative Nigeria market rates. Supplier prices, product, site conditions and final measurements may change the quote."
-                : roofUnitRate === undefined
-                  ? `A verified Market rate for ${gauge} mm has not been added. Add it to ROOFING_MARKET_RATES to enable this gauge.`
-                  : "Enter a roof area greater than zero to calculate an estimate."}
-              action={roofingEstimate
-                ? quoteAction(roofingWhatsappUrl, true)
-                : <a href="#contact" className="relative mt-8 block rounded-full bg-slate-950 py-4 text-center font-semibold text-white transition-colors hover:bg-slate-800">Request Exact Quote</a>}
+                ["Colour-coated", colourCoated ? "Yes" : "No"],
+              ]}
+              note="No price is calculated here. Our team will confirm the specification and prepare a quote."
+              action={quoteAction(roofingWhatsappUrl, roofAreaValid)}
             />
           </div>
         )}
@@ -461,13 +399,11 @@ function ChoiceButton({
 
 function EstimateCard({
   title,
-  total,
   rows,
   note,
   action,
 }: {
   title: string;
-  total?: string;
   rows: [string, string][];
   note: string;
   action?: React.ReactNode;
@@ -477,25 +413,16 @@ function EstimateCard({
       <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "repeating-linear-gradient(90deg, rgba(255,255,255,.4) 0 1px, transparent 1px 4px)" }} />
       <div className="relative flex-1">
         <p className="text-xs font-bold uppercase tracking-[0.25em]">{title}</p>
-        {total ? (
-          <>
-            <p className="mt-3 break-words font-display text-4xl font-bold sm:text-5xl">{total}</p>
-            <dl className="mt-8 space-y-3 text-sm">
-              {rows.map(([label, value]) => <Row key={label} k={label} v={value} />)}
-            </dl>
-          </>
-        ) : (
-          <p role="status" className="mt-6 border border-slate-900/20 p-4 text-sm leading-6">
-            {note}
-          </p>
-        )}
+        <dl className="mt-6 space-y-3 text-sm">
+          {rows.map(([label, value]) => <Row key={label} k={label} v={value} />)}
+        </dl>
+        <p className="mt-6 border border-slate-900/20 p-4 text-sm leading-6">{note}</p>
       </div>
       {action ?? (
         <a href="#contact" className="relative mt-8 rounded-full bg-slate-950 py-4 text-center font-semibold text-white transition-colors hover:bg-slate-800">
           Book a free site visit
         </a>
       )}
-      {total && <p className="relative mt-3 text-center text-xs text-slate-800">{note}</p>}
     </div>
   );
 }

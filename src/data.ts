@@ -60,20 +60,19 @@ export const PROCESS = [
   { step: "04", title: "Fit", text: "Coordinate the installation and complete the final fit for your space." },
 ];
 
-export const PRODUCT_RATES: Record<string, number> = {
-  // Indicative Nigeria budget rates in NGN; confirm current supplier and profile rates before quoting.
-  "Sliding Window": 180000,
-  "Casement Window": 210000,
-  "Bi-Fold Door": 320000,
-  "Lift & Slide Door": 360000,
-  "Glass Railing (per m)": 140000,
-};
+export const ALUMINIUM_PRODUCTS = [
+  "Sliding Window",
+  "Casement Window",
+  "Bi-Fold Door",
+  "Lift & Slide Door",
+  "Glass Railing (per m)",
+];
 
-export const FINISHES: Record<string, { mult: number; swatch: string }> = {
-  "Silver Anodized": { mult: 1, swatch: "linear-gradient(135deg,#f1f5f9,#94a3b8)" },
-  "Matte Black": { mult: 1.12, swatch: "linear-gradient(135deg,#334155,#020617)" },
-  "Champagne": { mult: 1.15, swatch: "linear-gradient(135deg,#f5e6c8,#b89b6a)" },
-  "Bronze": { mult: 1.15, swatch: "linear-gradient(135deg,#a47148,#4a2f1b)" },
-  "Pure White": { mult: 1.05, swatch: "linear-gradient(135deg,#ffffff,#e2e8f0)" },
-  "Wood Grain": { mult: 1.25, swatch: "repeating-linear-gradient(100deg,#8b5a2b 0 6px,#a0693a 6px 10px)" },
+export const FINISHES: Record<string, { swatch: string }> = {
+  "Silver Anodized": { swatch: "linear-gradient(135deg,#f1f5f9,#94a3b8)" },
+  "Matte Black": { swatch: "linear-gradient(135deg,#334155,#020617)" },
+  "Champagne": { swatch: "linear-gradient(135deg,#f5e6c8,#b89b6a)" },
+  "Bronze": { swatch: "linear-gradient(135deg,#a47148,#4a2f1b)" },
+  "Pure White": { swatch: "linear-gradient(135deg,#ffffff,#e2e8f0)" },
+  "Wood Grain": { swatch: "repeating-linear-gradient(100deg,#8b5a2b 0 6px,#a0693a 6px 10px)" },
 };
