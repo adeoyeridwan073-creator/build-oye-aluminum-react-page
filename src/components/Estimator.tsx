@@ -100,7 +100,7 @@ export default function Estimator() {
           ...contactDetails,
           estimator_type: "roofing",
           product: roofProduct,
-          gauge_mm: Number(gauge),
+          gauge_mm: gauge,
           grade,
           area_m2: roofAreaValue,
           colour_coated: colourCoated,
